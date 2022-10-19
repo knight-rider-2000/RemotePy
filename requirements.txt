@@ -1,0 +1,4 @@
+grpcio==1.49.1
+grpcio-tools==1.49.1
+protobuf==4.21.7
+virtualenv==20.13.0

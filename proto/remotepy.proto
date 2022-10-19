@@ -1,0 +1,63 @@
+syntax = "proto3";
+import "google/protobuf/empty.proto";
+
+service RemotePy {
+
+  rpc Version(VersionRequest) returns (VersionReply);
+  rpc Packages(PackagesRequest) returns (PackagesReply);
+  rpc PipInstall(PipInstallRequest) returns (google.protobuf.Empty);
+  rpc NewVenv(NewVenvRequest) returns (NewVenvReply);
+  rpc DeleteVenv(DeleteVenvRequest) returns (google.protobuf.Empty);
+  rpc PipUninstall(PipUninstallRequest) returns (google.protobuf.Empty);
+  rpc ListVenv(google.protobuf.Empty) returns (ListVenvReply);
+  rpc Exec(ExecRequest) returns (stream ExecReply);
+}
+
+message VersionRequest {
+  string idVenv = 1;
+}
+message VersionReply {
+  string version = 1;
+}
+
+message PackagesRequest {
+  string idVenv = 1;
+}
+message PackagesReply {
+  string packages = 1;
+}
+
+message PipInstallRequest {
+  string idVenv = 1;
+  string package = 2;
+}
+
+message PipUninstallRequest {
+  string idVenv = 1;
+  string package = 2;
+}
+
+message NewVenvRequest {
+  string pythonVersion = 1;
+}
+
+message NewVenvReply {
+  string idVenv = 1;
+}
+
+message DeleteVenvRequest {
+  string idVenv = 1;
+}
+
+message ListVenvReply {
+  string list = 1;
+}
+
+message ExecRequest {
+  string idVenv = 1;
+  string code = 2;
+}
+
+message ExecReply {
+  string log = 1;
+}
