@@ -1,8 +1,5 @@
-
-
 import os
 import time
-
 import grpc
 import time
 import queue
@@ -139,7 +136,6 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
 
         self.check_venv(request.idVenv)
         venv_dir = f"{CONFIG['virtualenv']['virtualenvs_path']}{request.idVenv}"
-        print(venv_dir)
         shutil.rmtree(venv_dir)
 
         return empty_pb2.Empty()
@@ -151,13 +147,9 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
         packages = str(request.package).replace('"', '').split(",")
 
         for package in packages:
-            print(str([pip_cmd, "uninstall", "-y", package]))
             proc = subprocess.Popen([pip_cmd, "uninstall", "-y", package],
                                     stdout=subprocess.PIPE,
                                     stderr=subprocess.PIPE)
-            print(proc.stdout.read().decode("utf8"))
-            print(proc.stderr.read().decode("utf8"))
-
         return empty_pb2.Empty()
 
     def ListVenv(self, request, context):
@@ -196,13 +188,13 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
 
         def out_reader(proc, log_queue):
             for line in iter(proc.stdout.readline, b''):
-                log_queue.put(line.decode("utf8"))
-            log_queue.put("end")
+                log_queue.put((remotepy_pb2.Std.STDOUT, line.decode("utf8")))
+            log_queue.put((remotepy_pb2.Std.STDOUT,"end"))
 
         def err_reader(proc, log_queue):
             for line in iter(proc.stderr.readline, b''):
-                log_queue.put(line.decode("utf8"))
-            log_queue.put("end")
+                log_queue.put((remotepy_pb2.Std.STDERR, line.decode("utf8")))
+            log_queue.put((remotepy_pb2.Std.STDERR,"end"))
 
         python_cmd = f"{CONFIG['virtualenv']['virtualenvs_path']}{request.idVenv}/bin/python"
         log_queue = queue.Queue()
@@ -219,8 +211,7 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
 
         while True:
             reply = remotepy_pb2.ExecReply()
-            reply.log = log_queue.get()
-            reply.type = remotepy_pb2.Std.STDERR
+            reply.type, reply.log = log_queue.get()
             reply.timestamp = int(round(datetime.now().timestamp()))
 
             if proc.poll() is not None:

@@ -58,7 +58,7 @@ def exemple():
 
                 elif rpc_call == "7":
                     replay = stub.ListVenv(empty_pb2.Empty())
-                    print("- ", replay.list.replace(",", "\n- "))
+                    print("->", replay.list.replace(",", "\n-> "))
 
                 elif rpc_call == "8":
                     id_venv = select_venv(stub)
@@ -87,7 +87,7 @@ def select_venv(stub):
         ids_env = replay.list.split(',')
         print("Select your virtualenv: ")
         for num, id_env in enumerate(ids_env):
-                print("-", num, ":", id_env)
+                print("->", num, ":", id_env)
         while True:
             choice = input()
             if 0 <= int(choice) < len(ids_env):
@@ -100,8 +100,8 @@ def select_venv(stub):
 def create_venv(stub):
 
     print("Select python version you need for virtualenv:")
-    print("- 1: python3")
-    print("- 2: python2")
+    print("-> 1: python3")
+    print("-> 2: python2")
     python_version = ""
     while True:
         choice = input()
