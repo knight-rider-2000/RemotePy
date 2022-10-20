@@ -2,6 +2,7 @@ import grpc
 from proto import remotepy_pb2
 from proto import remotepy_pb2_grpc
 from google.protobuf import empty_pb2
+from datetime import datetime
 
 
 def exemple():
@@ -52,7 +53,12 @@ def exemple():
                 request = remotepy_pb2.ExecRequest(idVenv=tmp_idVenv, code=code)
                 replies = stub.Exec(request)
                 for reply in replies:
-                    print(reply.log, end='')
+                    if reply.type == remotepy_pb2.Std.STDOUT:
+                        print("[STDOUT:{date}] {log}".format(date=datetime.fromtimestamp(reply.timestamp),
+                                                             log=reply.log), end='')
+                    elif reply.type == remotepy_pb2.Std.STDERR:
+                        print("[STDERR:{date}] {log}".format(date=datetime.fromtimestamp(reply.timestamp),
+                                                             log=reply.log), end='')
 
 
 if __name__ == "__main__":

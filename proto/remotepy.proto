@@ -58,6 +58,12 @@ message ExecRequest {
   string code = 2;
 }
 
+enum Std {
+  STDOUT = 0;
+  STDERR = 1;
+}
 message ExecReply {
   string log = 1;
+  Std type = 2;
+  uint64 timestamp = 3;
 }

@@ -4,12 +4,14 @@ import os
 import time
 
 import grpc
+import time
 import queue
 import shutil
 import subprocess
 import configparser
 from uuid import uuid1
 from threading import Thread
+from datetime import datetime
 from concurrent import futures
 from proto import remotepy_pb2
 from proto import remotepy_pb2_grpc
@@ -172,38 +174,46 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
 
         return replay
 
-    def Exec(self, request, context):
-        """
-        Execute python code in a given environment
+    def getServices(self, uuids=None):
+        """Returns a list of :class:`bluepy.blte.Service` objects representing
+        the services offered by the device. This will perform Bluetooth service
+        discovery if this has not already been done; otherwise it will return a
+        cached list of services immediately..
 
+        :param uuids: A list of string service UUIDs to be discovered,
+            defaults to None
+        :type uuids: list, optional
+        :return: A list of the discovered :class:`bluepy.blte.Service` objects,
+            which match the provided ``uuids``
+        :rtype: list On Python 3.x, this returns a dictionary view object,
+            not a list
+        """
+    def Exec(self, request, context):
+        """Execute python code in a given environment
         This function receives a code in string
         forma and execute it with a python -c on the
         chosen environment and returns the output
         stdout, stderr.
 
-        Parameters
-        ----------
-        request.idVenv : String (UUID)
-            Id virtualenv.
-        request.code : String
-            Python code to execute.
+        :param request.idVenv: Id virtualenv
+        :type request.idVenv: String (UUID)
+        :param request.code : Python code to execute
+        :type request.code : String
 
-        Returns
-        -------
-        String
-            Reply.log Iterator on stdout, stderr.
+        :return: Reply iterator continent log, type, timestamp.
+        :rtype: Iterator
         """
 
         self.check_venv(request.idVenv)
 
         def out_reader(proc, log_queue):
             for line in iter(proc.stdout.readline, b''):
-                log_queue.put("out: "+line.decode("utf8"))
+                log_queue.put(line.decode("utf8"))
             log_queue.put("end")
 
         def err_reader(proc, log_queue):
             for line in iter(proc.stderr.readline, b''):
-                log_queue.put("err: "+line.decode("utf8"))
+                log_queue.put(line.decode("utf8"))
             log_queue.put("end")
 
         python_cmd = f"{CONFIG['virtualenv']['virtualenvs_path']}{request.idVenv}/bin/python"
@@ -222,6 +232,9 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
         while True:
             reply = remotepy_pb2.ExecReply()
             reply.log = log_queue.get()
+            reply.type = remotepy_pb2.Std.STDERR
+            reply.timestamp = int(round(datetime.now().timestamp()))
+
             if proc.poll() is not None:
                 break
             yield reply
