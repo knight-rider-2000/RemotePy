@@ -164,11 +164,13 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
 
         venvs_path = f"{CONFIG['virtualenv']['virtualenvs_path']}"
         list = []
-        files = os.listdir(venvs_path)
 
-        for tmp_file in files:
-            if os.path.isdir(f"{venvs_path}/{tmp_file}"):
-                list.append(tmp_file)
+        if os.path.exists(venvs_path):
+            files = os.listdir(venvs_path)
+
+            for tmp_file in files:
+                if os.path.isdir(f"{venvs_path}/{tmp_file}"):
+                    list.append(tmp_file)
         replay = remotepy_pb2.ListVenvReply()
         replay.list = ','.join(list)
 
