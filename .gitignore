@@ -1,1 +1,4 @@
-__init__.py
+.idea/
+__pycache__/
+venv/
+proto/__pycache__/
