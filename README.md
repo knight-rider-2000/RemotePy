@@ -4,9 +4,9 @@
 
 **Table of contents**
 
-- [Project description](#Project_description)
+- [Description](#Description)
 - [Requirement](#Requirement)
-- [Getting started](#Getting_started)
+- [Getting started](#Getting-started)
 - [Configuration](#Configuration)
 
 ## Description
