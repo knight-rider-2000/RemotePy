@@ -21,15 +21,19 @@ It composed by server and client side which use gRPC framework to communicate
 - Linux (tested on ubuntu)
 
 ## Getting started
-### Start service
+### Start server
 ```shell
 $ python ./server.py
 ```
-### Execute client exemple
+### Execute client example
+You can find how to use different RemotePy services in ``.client.py``.
 
-
+```shell
+$ python ./client.py
+```
 
 ### Configuration
+You can find the file config file for service side in ``./config/prod.ini``.
 
 ### Generate proto
 If you want to regenerate proto file you need the following instructions :
