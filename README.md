@@ -12,7 +12,12 @@
 ## Description
 
 RemotePy allow you to manage python virtualenv remotely as well as execute python code remotly. 
-It composed by server and client side which use gRPC framework to communicate 
+It composed by server and client side which use gRPC framework to communicate.
+
+what you can do with RemotePy:
+- Create/Delete/List virtualenv
+- Install/Uninstall packages
+- Execute python code on a virtualenv
 
 ## Requirement
 - Python 3.8
@@ -34,6 +39,19 @@ $ python ./client.py
 
 ### Configuration
 You can find the file config file for service side in ``./config/prod.ini``.
+#### Example file config
+``` ini 
+[server]
+host = localhost    # Server address
+port = 50051        # Server usage port
+num_workers = 3     # Number of server workers 
+
+[virtualenv]
+virtualenvs_path = /tmp/virtualenvs/    # Virtualenv storage directory
+python_path = /usr/bin/python           # Path to your system python2.7 
+python3_path = /usr/bin/python3         # Path to your system python3
+
+```
 
 ### Generate proto
 If you want to regenerate proto file you need the following instructions :
