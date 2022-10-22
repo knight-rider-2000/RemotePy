@@ -1,8 +1,8 @@
 import grpc
 from proto import remotepy_pb2
 from proto import remotepy_pb2_grpc
-from google.protobuf import empty_pb2
 from datetime import datetime
+import utils
 
 
 def exemple():
@@ -23,51 +23,46 @@ def exemple():
                 rpc_call = input("Which rpc service would you like to test: ")
 
                 if rpc_call == "1":
-                    id_venv = select_venv(stub)
-                    request = remotepy_pb2.VersionRequest(idVenv=id_venv)
-                    replay = stub.Version(request)
-                    print(replay.version)
+                    id_venv = utils.select_venv(stub)
+                    tmp_version = utils.version(stub, id_venv)
+                    print(tmp_version)
 
                 elif rpc_call == "2":
-                    id_venv = select_venv(stub)
-                    request = remotepy_pb2.PackagesRequest(idVenv=id_venv)
-                    replay = stub.Packages(request)
-                    print(replay.packages)
+                    id_venv = utils.select_venv(stub)
+                    tmp_package = utils.package(stub, id_venv)
+                    print(tmp_package)
 
                 elif rpc_call == "3":
-                    create_venv(stub)
+                    utils.create_venv(stub)
 
                 elif rpc_call == "4":
-                    id_venv = select_venv(stub)
+                    id_venv = utils.select_venv(stub)
                     packages = "Flask==2.2.2"
                     print("Install package:", packages)
-                    request = remotepy_pb2.PipInstallRequest(idVenv=id_venv, package=packages)
-                    stub.PipInstall(request)
+                    utils.pip_install(stub, id_venv, packages)
 
                 elif rpc_call == "5":
-                    id_venv = select_venv(stub)
-                    request = remotepy_pb2.DeleteVenvRequest(idVenv=id_venv)
-                    stub.DeleteVenv(request)
+                    id_venv = utils.select_venv(stub)
+                    utils.delete_venv(stub, id_venv)
 
                 elif rpc_call == "6":
-                    id_venv = select_venv(stub)
-                    packages = "click==8.1.3,Flask==2.2.2,importlib-metadata==5.0.0,itsdangerous==2.1.2,Jinja2==3.1.2,MarkupSafe==2.1.1,Werkzeug==2.2.2"
+                    id_venv = utils.select_venv(stub)
+                    packages = "click==8.1.3,Flask==2.2.2,importlib-metadata==5.0.0,itsdangerous==2.1.2," \
+                               "Jinja2==3.1.2,MarkupSafe==2.1.1,Werkzeug==2.2.2 "
                     print("Uninstall package:", packages)
-                    request = remotepy_pb2.PipUninstallRequest(idVenv=id_venv, package=packages)
-                    stub.PipUninstall(request)
+                    utils.pip_uninstall(stub, id_venv, packages)
 
                 elif rpc_call == "7":
-                    replay = stub.ListVenv(empty_pb2.Empty())
-                    print("->", replay.list.replace(",", "\n-> "))
+                    tmp_list_venv = utils.list_venv(stub)
+                    print("->", tmp_list_venv.replace(",", "\n-> "))
 
                 elif rpc_call == "8":
-                    id_venv = select_venv(stub)
-                    code = "import time\nfor i in range(3):\n\tprint(i)\n\ttime.sleep(1)\nERRROOR"
+                    id_venv = utils.select_venv(stub)
+                    code = "import time\nfor i in range(3):\n\tprint(i)\n\ttime.sleep(1)\nCAUSE_ERROR"
                     print("----------PYTHON CODE------------")
                     print(code)
                     print("----------END CODE---------------")
-                    request = remotepy_pb2.ExecRequest(idVenv=id_venv, code=code)
-                    replies = stub.Exec(request)
+                    replies = utils.exec_python(stub, id_venv, code)
                     for reply in replies:
                         if reply.type == remotepy_pb2.Std.STDOUT:
                             print("[STDOUT:{date}] {log}".format(date=datetime.fromtimestamp(reply.timestamp),
@@ -78,45 +73,6 @@ def exemple():
             except Exception as err:
                 print(err)
             print()
-
-
-def select_venv(stub):
-
-    replay = stub.ListVenv(empty_pb2.Empty())
-    if replay.list != '':
-        ids_env = replay.list.split(',')
-        print("Select your virtualenv: ")
-        for num, id_env in enumerate(ids_env):
-                print("->", num, ":", id_env)
-        while True:
-            choice = input()
-            if 0 <= int(choice) < len(ids_env):
-                return ids_env[int(choice)]
-    else:
-        print("No virtualenv find you need create one before")
-        return create_venv(stub)
-
-
-def create_venv(stub):
-
-    print("Select python version you need for virtualenv:")
-    print("-> 1: python3")
-    print("-> 2: python2")
-    python_version = ""
-    while True:
-        choice = input()
-        if 1 <= int(choice) <= 2:
-            if int(choice) == 1:
-                python_version = "python3"
-                break
-            else:
-                python_version = "python2"
-                break
-
-    request = remotepy_pb2.NewVenvRequest(pythonVersion=python_version)
-    replay = stub.NewVenv(request)
-    print(replay.idVenv)
-    return replay.idVenv
 
 
 if __name__ == "__main__":
