@@ -188,12 +188,10 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
         def out_reader(proc, log_queue):
             for line in iter(proc.stdout.readline, b''):
                 log_queue.put((remotepy_pb2.Std.STDOUT, line.decode("utf8")))
-            log_queue.put((remotepy_pb2.Std.STDOUT,"end"))
 
         def err_reader(proc, log_queue):
             for line in iter(proc.stderr.readline, b''):
                 log_queue.put((remotepy_pb2.Std.STDERR, line.decode("utf8")))
-            log_queue.put((remotepy_pb2.Std.STDERR,"end"))
 
         python_cmd = f"{CONFIG['virtualenv']['virtualenvs_path']}{request.idVenv}/bin/python"
         log_queue = queue.Queue()
@@ -210,12 +208,20 @@ class RemotePyServer(remotepy_pb2_grpc.RemotePyServicer):
 
         while True:
             reply = remotepy_pb2.ExecReply()
-            reply.type, reply.log = log_queue.get()
+            if log_queue.qsize() == 0 and th_out.is_alive() is True and th_err.is_alive() is True:
+                time.sleep(0.01)
+            if log_queue.qsize() == 0 and th_out.is_alive() is False and th_err.is_alive() is False:
+                break
+            out = log_queue.get()
+            reply.type = out[0]
+            reply.log = out[1]
             reply.timestamp = int(round(datetime.now().timestamp()))
 
-            if proc.poll() is not None:
-                break
             yield reply
+
+            if proc.poll() is not None and log_queue.qsize() == 0:
+                time.sleep(0.3)
+                break
             log_queue.task_done()
 
         th_out.join()
